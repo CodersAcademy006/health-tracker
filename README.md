@@ -6,7 +6,7 @@ Vitalis is a full-featured personal health tracking web application. It lets peo
 
 The application is deployed and publicly accessible. You can try it at the link below.
 
-[View the live application](LIVE_URL_PLACEHOLDER)
+[View the live application](https://health-tracker-rho-six.vercel.app)
 
 A demo account is preloaded with sample data so you can explore the dashboard immediately.
 
