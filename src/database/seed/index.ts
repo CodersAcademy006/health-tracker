@@ -197,29 +197,3 @@ export function seedDatabase(userId = 'demo-user'): void {
   localStorage.setItem('health-tracker:sleep', JSON.stringify(generateSleep(userId)))
   localStorage.setItem('health-tracker:goals', JSON.stringify(generateGoals(userId)))
 }
-
-export function isDatabaseSeeded(): boolean {
-  return localStorage.getItem('health-tracker:metrics') !== null
-}
-
-export function seedDatabaseForUser(userId: string): void {
-  const key = `seeded:${userId}`
-  if (localStorage.getItem(key)) return
-  const current = localStorage.getItem('health-tracker:metrics')
-  const existing = current ? (JSON.parse(current) as HealthMetric[]) : []
-  existing.push(...generateHealthMetrics(userId))
-  localStorage.setItem('health-tracker:metrics', JSON.stringify(existing))
-  const activity = localStorage.getItem('health-tracker:activity')
-  const existingActivity = activity ? (JSON.parse(activity) as ActivityRecord[]) : []
-  existingActivity.push(...generateActivity(userId))
-  localStorage.setItem('health-tracker:activity', JSON.stringify(existingActivity))
-  const sleep = localStorage.getItem('health-tracker:sleep')
-  const existingSleep = sleep ? (JSON.parse(sleep) as SleepRecord[]) : []
-  existingSleep.push(...generateSleep(userId))
-  localStorage.setItem('health-tracker:sleep', JSON.stringify(existingSleep))
-  const goals = localStorage.getItem('health-tracker:goals')
-  const existingGoals = goals ? (JSON.parse(goals) as HealthGoal[]) : []
-  existingGoals.push(...generateGoals(userId))
-  localStorage.setItem('health-tracker:goals', JSON.stringify(existingGoals))
-  localStorage.setItem(key, 'true')
-}

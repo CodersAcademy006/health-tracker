@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { HealthMetricForm } from '@/components/health/metric-form/HealthMetricForm'
 import { LineChart } from '@/components/ui/LineChart'
 import { useHealthData } from '@/hooks/use-health-data'
@@ -102,9 +103,12 @@ export default function HealthPage() {
                 <LineChart data={chartData} color={isInNormalRange(selectedType, currentSeries.metric.value) ? '#16a34a' : '#d97706'} />
               </>
             ) : (
-              <div className="py-12 text-center text-sm text-surface-500">
-                No data for this metric yet. Log your first measurement.
-              </div>
+              <EmptyState
+                icon={<Activity className="h-10 w-10" />}
+                title={`Add your first ${def.label.toLowerCase()} reading`}
+                description={`No ${def.label.toLowerCase()} data yet. Your trend chart and history will appear here after your first entry.`}
+                action={<Button onClick={openCreate}>Log measurement</Button>}
+              />
             )}
           </CardContent>
         </Card>

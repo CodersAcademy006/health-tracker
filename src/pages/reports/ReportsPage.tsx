@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Activity } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { healthService } from '@/services/health.service'
 import { LineChart } from '@/components/ui/LineChart'
 import { getMetricDefinition, isInNormalRange } from '@/lib/health/metric-definitions'
@@ -45,33 +49,48 @@ export default function ReportsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        {series.map((s) => {
-          const def = getMetricDefinition(s.metric.type)
-          const inRange = isInNormalRange(s.metric.type, s.metric.value)
-          return (
-            <Card key={s.metric.type}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{def.label}</CardTitle>
-                  <Badge variant={inRange ? 'success' : 'warning'}>
-                    {inRange ? 'Normal' : 'Attention'}
-                  </Badge>
-                </div>
-                <CardDescription>
-                  Avg {formatDecimal(s.stats?.average ?? 0)} {def.unit} · Min {formatDecimal(s.stats?.min ?? 0)} · Max{' '}
-                  {formatDecimal(s.stats?.max ?? 0)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LineChart
-                  data={s.history.map((m) => ({ x: m.recordedAt, y: m.value }))}
-                  color={inRange ? '#16a34a' : '#d97706'}
-                  unit={def.unit}
-                />
-              </CardContent>
-            </Card>
-          )
-        })}
+        {series.length === 0 ? (
+          <Card className="xl:col-span-2">
+            <EmptyState
+              icon={<Activity className="h-10 w-10" />}
+              title="No health data yet"
+              description="Reports and trends are built from your measurements. Log your first reading to see charts here."
+              action={
+                <Link to="/health">
+                  <Button>Log a measurement</Button>
+                </Link>
+              }
+            />
+          </Card>
+        ) : (
+          series.map((s) => {
+            const def = getMetricDefinition(s.metric.type)
+            const inRange = isInNormalRange(s.metric.type, s.metric.value)
+            return (
+              <Card key={s.metric.type}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>{def.label}</CardTitle>
+                    <Badge variant={inRange ? 'success' : 'warning'}>
+                      {inRange ? 'Normal' : 'Attention'}
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    Avg {formatDecimal(s.stats?.average ?? 0)} {def.unit} · Min {formatDecimal(s.stats?.min ?? 0)} · Max{' '}
+                    {formatDecimal(s.stats?.max ?? 0)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LineChart
+                    data={s.history.map((m) => ({ x: m.recordedAt, y: m.value }))}
+                    color={inRange ? '#16a34a' : '#d97706'}
+                    unit={def.unit}
+                  />
+                </CardContent>
+              </Card>
+            )
+          })
+        )}
       </div>
     </div>
   )
