@@ -8,7 +8,7 @@ interface NotificationState {
   notifications: AppNotification[]
   unreadCount: number
   loading: boolean
-  initialized: boolean
+  initializedUserId: string | null
   initialize: () => Promise<void>
   refresh: () => Promise<void>
   markAsRead: (id: string) => Promise<void>
@@ -17,63 +17,54 @@ interface NotificationState {
   clearAll: () => Promise<void>
 }
 
+async function syncCount(set: (partial: Partial<NotificationState>) => void): Promise<void> {
+  const [notifications, unreadCount] = await Promise.all([
+    notificationService.getNotifications(50),
+    notificationApi.unreadCount(),
+  ])
+  set({ notifications, unreadCount })
+}
+
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   unreadCount: 0,
   loading: false,
-  initialized: false,
+  initializedUserId: null,
 
   initialize: async () => {
-    if (get().initialized) return
-    if (!useAuthStore.getState().isAuthenticated) return
-    set({ loading: true, initialized: true })
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) return
+    if (get().initializedUserId === userId) return
+    set({ loading: true, initializedUserId: userId, notifications: [], unreadCount: 0 })
     try {
-      await notificationService.generateStatusNotifications()
-      const [notifications, unreadCount] = await Promise.all([
-        notificationService.getNotifications(50),
-        notificationService.getUnreadCount(),
-      ])
-      set({ notifications, unreadCount })
+      await get().refresh()
     } finally {
       set({ loading: false })
     }
   },
 
   refresh: async () => {
-    const [notifications, unreadCount] = await Promise.all([
-      notificationService.getNotifications(50),
-      notificationService.getUnreadCount(),
-    ])
-    set({ notifications, unreadCount })
+    await notificationService.generateStatusNotifications()
+    await syncCount(set)
   },
 
   markAsRead: async (id: string) => {
     await notificationApi.markAsRead(id)
-    set({
-      notifications: get().notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
-      unreadCount: Math.max(0, get().unreadCount - 1),
-    })
+    await syncCount(set)
   },
 
   markAllAsRead: async () => {
     await notificationApi.markAllAsRead()
-    set({
-      notifications: get().notifications.map((n) => ({ ...n, read: true })),
-      unreadCount: 0,
-    })
+    await syncCount(set)
   },
 
   remove: async (id: string) => {
     await notificationApi.remove(id)
-    const remaining = get().notifications.filter((n) => n.id !== id)
-    set({
-      notifications: remaining,
-      unreadCount: remaining.filter((n) => !n.read).length,
-    })
+    await syncCount(set)
   },
 
   clearAll: async () => {
     await notificationApi.clearAll()
-    set({ notifications: [], unreadCount: 0 })
+    await syncCount(set)
   },
 }))
