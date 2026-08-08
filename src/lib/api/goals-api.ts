@@ -63,7 +63,8 @@ export const goalsApi = {
     if (input.currentValue !== undefined) {
       const goal = all[index]
       const target = goal.targetValue
-      goal.progress = Math.min(100, Math.round((goal.currentValue / target) * 100))
+      const progress = target > 0 ? (goal.currentValue / target) * 100 : 0
+      goal.progress = Math.min(100, Math.round(progress))
     }
     saveAll(all)
     return all[index]
