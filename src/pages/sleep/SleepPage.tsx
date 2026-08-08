@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { sleepRecordSchema } from '@/lib/validation/sleep'
 import { sleepService, type SleepPeriodSummary } from '@/services/sleep.service'
 import { sleepApi } from '@/lib/api/sleep-api'
 import { formatDate } from '@/lib/utils/date'
@@ -217,20 +218,25 @@ function SleepFormModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const start = new Date(`${date}T22:00:00`)
+    const end = new Date(start.getTime() + Number(duration) * 3600 * 1000)
+    const payload = {
+      date,
+      sleepStart: start.toISOString(),
+      sleepEnd: end.toISOString(),
+      durationHours: Number(duration),
+      quality: Number(quality) as SleepRecord['quality'],
+      deepSleepHours: Number(deepSleep),
+      remSleepHours: Number(remSleep),
+      awakeTimeMinutes: 10,
+    }
+    const parsed = sleepRecordSchema.safeParse(payload)
+    if (!parsed.success) {
+      toast.error('Invalid sleep record', parsed.error.issues[0]?.message ?? 'Check the form values.')
+      return
+    }
     setSaving(true)
     try {
-      const start = new Date(`${date}T22:00:00`)
-      const end = new Date(start.getTime() + duration * 3600 * 1000)
-      const payload = {
-        date,
-        sleepStart: start.toISOString(),
-        sleepEnd: end.toISOString(),
-        durationHours: Number(duration),
-        quality: Number(quality) as SleepRecord['quality'],
-        deepSleepHours: Number(deepSleep),
-        remSleepHours: Number(remSleep),
-        awakeTimeMinutes: 10,
-      }
       if (record) {
         await sleepApi.update(record.id, payload)
         toast.success('Sleep record updated', 'The record was saved.')

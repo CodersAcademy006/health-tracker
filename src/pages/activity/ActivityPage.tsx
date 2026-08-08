@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { activityService, type ActivityPeriodSummary } from '@/services/activity.service'
 import { activityApi } from '@/lib/api/activity-api'
+import { activityRecordSchema } from '@/lib/validation/activity'
 import { formatDateTime } from '@/lib/utils/date'
 import type { ActivityRecord, ActivityType } from '@/types/activity'
 import { useToast } from '@/hooks/use-toast'
@@ -215,15 +216,20 @@ function ActivityFormModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const payload = {
+      type,
+      startedAt: record?.startedAt ?? new Date().toISOString(),
+      durationMinutes: Number(duration),
+      caloriesBurned: Number(calories),
+      distanceKm: distance ? Number(distance) : undefined,
+    }
+    const parsed = activityRecordSchema.safeParse(payload)
+    if (!parsed.success) {
+      toast.error('Invalid activity', parsed.error.issues[0]?.message ?? 'Check the form values.')
+      return
+    }
     setSaving(true)
     try {
-      const payload = {
-        type,
-        startedAt: record?.startedAt ?? new Date().toISOString(),
-        durationMinutes: Number(duration),
-        caloriesBurned: Number(calories),
-        distanceKm: distance ? Number(distance) : undefined,
-      }
       if (record) {
         await activityApi.update(record.id, payload)
         toast.success('Activity updated', 'The record was saved.')

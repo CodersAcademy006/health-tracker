@@ -120,11 +120,3 @@ export function isInNormalRange(type: HealthMetricType, value: number): boolean 
   if (!def) return false
   return value >= def.normalRange[0] && value <= def.normalRange[1]
 }
-
-export function getMetricLabel(type: HealthMetricType): string {
-  return HEALTH_METRIC_DEFINITIONS[type]?.label ?? type
-}
-
-export function getMetricUnit(type: HealthMetricType): string {
-  return HEALTH_METRIC_DEFINITIONS[type]?.unit ?? ''
-}
