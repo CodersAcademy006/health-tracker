@@ -26,8 +26,13 @@ function isoToDatetimeLocal(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function midpoint(range: [number, number]): number {
+  return Math.round(((range[0] + range[1]) / 2) * 10) / 10
+}
+
 export function HealthMetricForm({ onSubmit, initialType, record, onSuccess }: HealthMetricFormProps) {
   const toast = useToast()
+  const initialDef = getMetricDefinition(initialType ?? 'weight')
   const defaultValues: FormValues = record
     ? {
         type: record.type,
@@ -39,8 +44,8 @@ export function HealthMetricForm({ onSubmit, initialType, record, onSuccess }: H
       }
     : {
         type: initialType ?? 'weight',
-        value: 70,
-        unit: getMetricDefinition(initialType ?? 'weight').unit,
+        value: midpoint(initialDef.normalRange),
+        unit: initialDef.unit,
         recordedAt: isoToDatetimeLocal(new Date().toISOString()),
         notes: '',
         source: 'manual',
@@ -61,9 +66,9 @@ export function HealthMetricForm({ onSubmit, initialType, record, onSuccess }: H
   const def = getMetricDefinition(type)
 
   useEffect(() => {
-    if (def && !record) {
-      setValue('unit', def.unit, { shouldValidate: false })
-    }
+    if (!def || record) return
+    setValue('unit', def.unit, { shouldValidate: false })
+    setValue('value', midpoint(def.normalRange), { shouldValidate: true })
   }, [type, def, setValue, record])
 
   const handleFormSubmit = handleSubmit(async (values) => {

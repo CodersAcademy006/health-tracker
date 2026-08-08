@@ -30,11 +30,19 @@ export default function DashboardPage() {
       unit: 'kg',
       icon: <Weight className="h-5 w-5" />,
       change: weightSeries ? weightSeries.percentageChange : undefined,
+      isPercent: true,
       trend: weightSeries
         ? weightSeries.percentageChange > 0
-          ? ('down' as const)
+          ? ('up' as const)
           : weightSeries.percentageChange < 0
-            ? ('up' as const)
+            ? ('down' as const)
+            : ('neutral' as const)
+        : ('neutral' as const),
+      tone: weightSeries
+        ? weightSeries.percentageChange > 0
+          ? ('bad' as const)
+          : weightSeries.percentageChange < 0
+            ? ('good' as const)
             : ('neutral' as const)
         : ('neutral' as const),
     },
@@ -44,11 +52,19 @@ export default function DashboardPage() {
       unit: 'bpm',
       icon: <Heart className="h-5 w-5" />,
       change: heartSeries ? heartSeries.percentageChange : undefined,
+      isPercent: true,
       trend: heartSeries
         ? heartSeries.percentageChange > 0
-          ? ('down' as const)
+          ? ('up' as const)
           : heartSeries.percentageChange < 0
-            ? ('up' as const)
+            ? ('down' as const)
+            : ('neutral' as const)
+        : ('neutral' as const),
+      tone: heartSeries
+        ? heartSeries.percentageChange > 0
+          ? ('bad' as const)
+          : heartSeries.percentageChange < 0
+            ? ('good' as const)
             : ('neutral' as const)
         : ('neutral' as const),
     },
@@ -59,7 +75,7 @@ export default function DashboardPage() {
       icon: <Activity className="h-5 w-5" />,
       change: activity ? Math.min(activity.summary.averageDurationMinutes, 100) : undefined,
       changeLabel: 'avg minutes',
-      trend: 'up' as const,
+      tone: 'good' as const,
     },
     {
       title: 'Sleep',
@@ -68,7 +84,7 @@ export default function DashboardPage() {
       icon: <Moon className="h-5 w-5" />,
       change: sleep ? sleep.summary.sleepDebtHours : undefined,
       changeLabel: 'hrs debt',
-      trend: 'neutral' as const,
+      tone: 'neutral' as const,
     },
   ]
 

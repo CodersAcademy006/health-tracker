@@ -225,13 +225,18 @@ function GoalFormModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const target = Number(targetValue)
+    if (!targetValue || target <= 0) {
+      toast.warning('Invalid target', 'The target value must be greater than zero.')
+      return
+    }
     setSaving(true)
     try {
       const payload = {
         type,
         title,
         description: description || undefined,
-        targetValue: Number(targetValue),
+        targetValue: target,
         currentValue: Number(currentValue || 0),
         unit,
         startDate: goal?.startDate ?? new Date().toISOString().slice(0, 10),
@@ -312,7 +317,7 @@ function GoalFormModal({
             <input
               id="goal-target"
               type="number"
-              min={0}
+              min={1}
               step={0.1}
               className="input"
               value={targetValue}

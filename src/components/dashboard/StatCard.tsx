@@ -9,7 +9,9 @@ interface StatCardProps {
   icon: ReactNode
   change?: number
   changeLabel?: string
+  isPercent?: boolean
   trend?: 'up' | 'down' | 'neutral'
+  tone?: 'good' | 'bad' | 'neutral'
   loading?: boolean
 }
 
@@ -20,7 +22,9 @@ export function StatCard({
   icon,
   change,
   changeLabel = 'vs last week',
+  isPercent = false,
   trend,
+  tone,
   loading = false,
 }: StatCardProps) {
   if (loading) {
@@ -42,9 +46,14 @@ export function StatCard({
     down: { icon: TrendingDown, className: 'text-red-600 bg-red-50' },
     neutral: { icon: Minus, className: 'text-surface-500 bg-surface-100' },
   }
+  const toneConfig = {
+    good: 'text-green-600 bg-green-50',
+    bad: 'text-red-600 bg-red-50',
+    neutral: 'text-surface-500 bg-surface-100',
+  }
 
   const TrendIcon = trendConfig[trend ?? 'neutral'].icon
-  const trendClass = trendConfig[trend ?? 'neutral'].className
+  const badgeClass = toneConfig[tone ?? 'neutral']
 
   return (
     <div className="card p-5">
@@ -56,15 +65,16 @@ export function StatCard({
             {unit && <span className="text-sm text-surface-500">{unit}</span>}
           </p>
         </div>
-        <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', trendClass)}>
+        <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', badgeClass)}>
           {icon}
         </div>
       </div>
       {change !== undefined && (
         <div className="mt-3 flex items-center gap-2 text-xs">
-          <span className={cn('flex items-center gap-1 font-medium', trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-surface-500')}>
+          <span className={cn('flex items-center gap-1 font-medium', tone === 'good' ? 'text-green-600' : tone === 'bad' ? 'text-red-600' : 'text-surface-500')}>
             <TrendIcon className="h-3.5 w-3.5" />
-            {Math.abs(change)}%
+            {Math.abs(change)}
+            {isPercent && '%'}
           </span>
           <span className="text-surface-400">{changeLabel}</span>
         </div>
