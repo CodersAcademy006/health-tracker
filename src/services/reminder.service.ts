@@ -6,6 +6,14 @@ function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
+function localDateString(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+function localTimeString(date: Date): string {
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 function matchesFrequency(frequency: ReminderFrequency, day: number): boolean {
   const isWeekend = day === 0 || day === 6
   if (frequency === 'weekdays') return !isWeekend
@@ -17,19 +25,21 @@ export const reminderService = {
   async checkDue(): Promise<Reminder[]> {
     const reminders = await reminderApi.list()
     const now = new Date()
-    const today = now.toISOString().slice(0, 10)
-    const currentTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`
+    const today = localDateString(now)
+    const currentTime = localTimeString(now)
 
     return reminders.filter((r) => {
       if (!r.enabled) return false
       if (!matchesFrequency(r.frequency, now.getDay())) return false
-      if (r.lastFiredAt?.slice(0, 10) === today) return false
-      return r.time === currentTime
+      const lastFiredLocal = r.lastFiredAt ? localDateString(new Date(r.lastFiredAt)) : null
+      if (lastFiredLocal === today) return false
+      // ponytail: catch-up comparison instead of exact minute so a throttled tab still fires once a day
+      return r.time <= currentTime
     })
   },
 
   async fire(reminder: Reminder): Promise<void> {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = localDateString(new Date())
     await notificationApi.create({
       type: 'habit_reminder',
       title: reminder.title,
