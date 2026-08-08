@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { Select } from '@/components/ui/Select'
 import { goalsService } from '@/services/goals.service'
 import { goalsApi } from '@/lib/api/goals-api'
+import { goalSchema } from '@/lib/validation/goals'
 import type { GoalProgress, HealthGoal, GoalType } from '@/types/goals'
 import { formatDate } from '@/lib/utils/date'
 import { useToast } from '@/hooks/use-toast'
@@ -230,19 +231,24 @@ function GoalFormModal({
       toast.warning('Invalid target', 'The target value must be greater than zero.')
       return
     }
+    const payload = {
+      type,
+      title,
+      description: description || undefined,
+      targetValue: target,
+      currentValue: Number(currentValue || 0),
+      unit,
+      startDate: goal?.startDate ?? new Date().toISOString().slice(0, 10),
+      endDate: endDate || undefined,
+      status,
+    }
+    const parsed = goalSchema.safeParse(payload)
+    if (!parsed.success) {
+      toast.error('Invalid goal', parsed.error.issues[0]?.message ?? 'Check the form values.')
+      return
+    }
     setSaving(true)
     try {
-      const payload = {
-        type,
-        title,
-        description: description || undefined,
-        targetValue: target,
-        currentValue: Number(currentValue || 0),
-        unit,
-        startDate: goal?.startDate ?? new Date().toISOString().slice(0, 10),
-        endDate: endDate || undefined,
-        status,
-      }
       if (goal) {
         await goalsApi.update(goal.id, payload)
         toast.success('Goal updated', 'Your goal was saved.')
