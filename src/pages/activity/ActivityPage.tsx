@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { activityService, type ActivityPeriodSummary } from '@/services/activity.service'
 import { activityApi } from '@/lib/api/activity-api'
 import { formatDateTime } from '@/lib/utils/date'
@@ -108,7 +109,12 @@ export default function ActivityPage() {
               ))}
             </div>
           ) : records.length === 0 ? (
-            <p className="p-5 text-sm text-surface-500">No activity recorded yet.</p>
+            <EmptyState
+              icon={<Activity className="h-10 w-10" />}
+              title="Log your first activity"
+              description="Record a run, a cycling session, a swim, or a gym workout. Your activity summary and history will appear here after your first entry."
+              action={<Button onClick={openCreate}>Log activity</Button>}
+            />
           ) : (
             <ul className="divide-y divide-surface-100">
               {records.map((r) => (

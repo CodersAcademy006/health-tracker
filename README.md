@@ -15,7 +15,7 @@ A demo account is preloaded with sample data so you can explore the dashboard im
 | Email | alex@example.com |
 | Password | DemoPass123 |
 
-You can also create a new account from the registration page. New accounts start with a full set of sample data so every screen has something to show.
+You can also create a new account from the registration page. New accounts start empty and every page guides you to add your first measurement, activity, sleep record, or goal. The demo account is the only one that comes with sample data.
 
 ## Screenshots
 

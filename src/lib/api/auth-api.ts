@@ -38,7 +38,6 @@ export const authApi = {
       createdAt: now,
       updatedAt: now,
     })
-    seedDatabase(user.id)
     return toPublicUser(user)
   },
 

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, Activity, HeartPulse } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { ActivitySummaryCard } from '@/components/dashboard/activity-summary/ActivitySummaryCard'
@@ -10,7 +10,7 @@ import { HealthSummaryCard } from '@/components/dashboard/health-summary/HealthS
 import { useDashboardData } from '@/hooks/use-dashboard-data'
 import { useAuth } from '@/hooks/use-auth'
 import { formatDecimal } from '@/lib/utils/format-number'
-import { Heart, Activity, Moon, Weight } from 'lucide-react'
+import { Heart, Moon, Weight } from 'lucide-react'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const { series, recent, activity, sleep, goals, loading } = useDashboardData()
 
   const latestSeries = series.slice(0, 4)
+  const hasNoData = !loading && series.length === 0 && recent.length === 0 && !activity && !sleep && goals.length === 0
 
   const weightSeries = series.find((s) => s.metric.type === 'weight')
   const heartSeries = series.find((s) => s.metric.type === 'heart_rate')
@@ -85,6 +86,31 @@ export default function DashboardPage() {
           Log measurement
         </Button>
       </div>
+
+      {hasNoData && (
+        <div className="rounded-xl border border-primary-200 bg-primary-50 p-6">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white">
+              <HeartPulse className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold text-surface-900">
+                Welcome to Vitalis, {user?.firstName ?? 'there'}
+              </h2>
+              <p className="mt-1 text-sm text-surface-600">
+                Your account is ready. Add your first health measurement, activity, or sleep record and
+                Vitalis will build your trends and summaries from your own data.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => navigate('/health')}>Log a measurement</Button>
+                <Button size="sm" variant="outline" onClick={() => navigate('/activity')}>Log an activity</Button>
+                <Button size="sm" variant="outline" onClick={() => navigate('/sleep')}>Log sleep</Button>
+                <Button size="sm" variant="outline" onClick={() => navigate('/goals')}>Set a goal</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {primaryMetrics.map((m) => (

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { sleepService, type SleepPeriodSummary } from '@/services/sleep.service'
@@ -77,7 +78,12 @@ export default function SleepPage() {
             <SleepStat icon={<CalendarCheck className="h-5 w-5" />} label="Best night" value={formatDate(summary.summary.bestDay, 'MMM d')} color="bg-green-50 text-green-600" />
           </>
         ) : (
-          [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28" />)
+          <>
+            <SleepStat icon={<Moon className="h-5 w-5" />} label="Avg duration" value="0 hrs" color="bg-indigo-50 text-indigo-600" />
+            <SleepStat icon={<Star className="h-5 w-5" />} label="Avg quality" value="—" color="bg-yellow-50 text-yellow-600" />
+            <SleepStat icon={<Timer className="h-5 w-5" />} label="Sleep debt" value="0 hrs" color="bg-red-50 text-red-600" />
+            <SleepStat icon={<CalendarCheck className="h-5 w-5" />} label="Best night" value="—" color="bg-green-50 text-green-600" />
+          </>
         )}
       </div>
 
@@ -136,7 +142,12 @@ export default function SleepPage() {
               ))}
             </ul>
           ) : (
-            <p className="p-5 text-sm text-surface-500">No sleep data recorded yet.</p>
+            <EmptyState
+              icon={<Moon className="h-10 w-10" />}
+              title="Log your first night of sleep"
+              description="Record how many hours you slept and how it felt. Your sleep patterns and quality trends will appear here after your first entry."
+              action={<Button onClick={openCreate}>Log sleep</Button>}
+            />
           )}
         </CardContent>
       </Card>
