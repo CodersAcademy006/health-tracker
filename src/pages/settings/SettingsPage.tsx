@@ -7,6 +7,7 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/hooks/use-toast'
 import { reminderApi, type CreateReminderInput } from '@/lib/api/reminder-api'
+import { preferencesApi, type Preferences } from '@/lib/api/preferences-api'
 import type { Reminder, ReminderCategory, ReminderFrequency } from '@/types/reminder'
 import { cn } from '@/lib/utils/cn'
 
@@ -64,6 +65,8 @@ export default function SettingsPage() {
   const [height, setHeight] = useState('178')
   const [weight, setWeight] = useState('76')
   const [activityLevel, setActivityLevel] = useState('moderate')
+  const [weightUnit, setWeightUnit] = useState('metric')
+  const [distanceUnit, setDistanceUnit] = useState('km')
 
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [remindersLoaded, setRemindersLoaded] = useState(false)
@@ -86,6 +89,16 @@ export default function SettingsPage() {
     loadReminders()
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+    const prefs = preferencesApi.get(user.id)
+    if (prefs.heightCm !== undefined) setHeight(prefs.heightCm)
+    if (prefs.weightKg !== undefined) setWeight(prefs.weightKg)
+    if (prefs.activityLevel !== undefined) setActivityLevel(prefs.activityLevel)
+    if (prefs.weightUnit !== undefined) setWeightUnit(prefs.weightUnit)
+    if (prefs.distanceUnit !== undefined) setDistanceUnit(prefs.distanceUnit)
+  }, [user])
+
   const saveProfile = (e: FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -94,11 +107,15 @@ export default function SettingsPage() {
       lastName: lastName.trim() || user.lastName,
       email: email.trim() || user.email,
     })
+    const prefs: Preferences = { heightCm: height, weightKg: weight, activityLevel }
+    preferencesApi.save(user.id, prefs)
     toast.success('Profile updated', 'Your profile was saved successfully.')
   }
 
   const saveUnits = (e: FormEvent) => {
     e.preventDefault()
+    if (!user) return
+    preferencesApi.save(user.id, { weightUnit, distanceUnit })
     toast.success('Settings saved', 'Unit preferences updated.')
   }
 
@@ -139,11 +156,16 @@ export default function SettingsPage() {
   }
 
   const addDemoReminders = async () => {
-    for (const r of DEFAULT_REMINDERS) {
+    const existing = new Set(reminders.map((r) => r.title))
+    const toAdd = DEFAULT_REMINDERS.filter((r) => !existing.has(r.title))
+    for (const r of toAdd) {
       await reminderApi.create(r)
     }
     await loadReminders()
-    toast.success('Reminders added', 'Sample reminders were added for you.')
+    toast.success(
+      'Reminders added',
+      toAdd.length === 0 ? 'You already have the sample reminders.' : 'Sample reminders were added for you.'
+    )
   }
 
   const requestBrowserPermission = async () => {
@@ -199,15 +221,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <CardHeader
-          action={
-            remindersLoaded && reminders.length === 0 ? (
-              <Button variant="outline" size="sm" onClick={addDemoReminders}>
-                Add sample reminders
-              </Button>
-            ) : undefined
-          }
-        >
+        <CardHeader>
           <CardTitle>Reminders and Alarms</CardTitle>
           <CardDescription>
             Schedule alarms for your habits and trackers. They appear in your notification bell and can also
@@ -228,9 +242,12 @@ export default function SettingsPage() {
               ))}
             </div>
           ) : reminders.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-surface-300 p-4 text-center text-sm text-surface-500">
-              No reminders yet. Create one below to get started.
-            </p>
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-surface-300 p-4 text-center">
+              <p className="text-sm text-surface-500">No reminders yet. Create one below or add the samples.</p>
+              <Button variant="outline" size="sm" onClick={addDemoReminders}>
+                Add sample reminders
+              </Button>
+            </div>
           ) : (
             <ul className="divide-y divide-surface-100 rounded-lg border border-surface-200">
               {reminders.map((r) => (
@@ -357,11 +374,11 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={saveUnits} className="space-y-4">
-            <Select label="Weight unit" defaultValue="metric">
+            <Select label="Weight unit" value={weightUnit} onChange={(e) => setWeightUnit(e.target.value)}>
               <option value="metric">Kilograms (kg)</option>
               <option value="imperial">Pounds (lbs)</option>
             </Select>
-            <Select label="Distance unit" defaultValue="km">
+            <Select label="Distance unit" value={distanceUnit} onChange={(e) => setDistanceUnit(e.target.value)}>
               <option value="km">Kilometers</option>
               <option value="mi">Miles</option>
             </Select>
